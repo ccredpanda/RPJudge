@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ccredpanda.rpjudge.mapper.ProblemCaseMapper">
+
+    <!--插入测试案例-->
+    <insert id="add">
+        insert into problem_case(problem_id, input, output, score, sort)
+        values (#{problemId}, #{input}, #{output}, #{score}, #{sort})
+    </insert>
+    <!--通过题目ID删除所有测试案例-->
+    <delete id="deleteByProblemId">
+        delete from problem_case where problem_id = #{problemId}
+    </delete>
+    <!--通过题目ID获得测试案例-->
+    <select id="getByProblemId" resultType="com.ccredpanda.rpjudge.entity.ProblemCase">
+        select id, problem_id, input, output, score, sort from problem_case where problem_id = #{problemId}
+    </select>
+</mapper>

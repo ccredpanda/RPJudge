@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ccredpanda.rpjudge.mapper.UserMapper">
+    <!--插入一个用户-->
+    <insert id="add"
+            parameterType="com.ccredpanda.rpjudge.entity.User"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        insert into user
+        (username, password, nickname, avatar, signature,
+         role, solved_count, submit_count, solution_count,
+         status, create_time, update_time)
+        values
+            (#{username}, #{password}, #{nickname}, #{avatar}, #{signature},
+             #{role}, #{solvedCount}, #{submitCount}, #{solutionCount},
+             #{status}, #{createTime}, #{updateTime})
+    </insert>
+    <!--更新用户信息-->
+    <update id="update" parameterType="com.ccredpanda.rpjudge.entity.User">
+        UPDATE user
+        <set>
+            <!-- 密码：一般不为空且不是空字符串才更新 -->
+            <if test="password != null and password != ''">
+                password = #{password},
+            </if>
+            <!-- 用户名 -->
+            <if test="username != null and username != ''">
+                username = #{username},
+            </if>
+            <!-- 昵称 -->
+            <if test="nickname != null and nickname != ''">
+                nickname = #{nickname},
+            </if>
+            <!-- 头像：允许用户清空头像，所以只要不是 null 就可以更新（甚至可以是空字符串） -->
+            <if test="avatar != null">
+                avatar = #{avatar},
+            </if>
+            <!-- 个性签名：同理，允许清空 -->
+            <if test="signature != null">
+                signature = #{signature},
+            </if>
+            <!-- 角色（通常只有管理员能改，但作为通用更新方法，保留判断） -->
+            <if test="role != null">
+                role = #{role},
+            </if>
+            <!-- 统计数据（交卷时自动更新等） -->
+            <if test="solvedCount != null">
+                solved_count = #{solvedCount},
+            </if>
+            <if test="submitCount != null">
+                submit_count = #{submitCount},
+            </if>
+            <if test="solutionCount != null">
+                solution_count = #{solutionCount},
+            </if>
+            <!-- 账号状态（封禁/正常） -->
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <!-- 更新时间：无论更新什么，时间都要变。这里直接使用 MySQL 的 NOW() 函数 -->
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+    <!--通过用户名查询用户是否存在-->
+    <select id="countByUsername" resultType="java.lang.Integer">
+        select count(*) from user where username = #{username}
+    <!--通过用户名查询用户信息-->
+    </select>
+    <select id="getUserByUsername" resultType="com.ccredpanda.rpjudge.entity.User">
+        select id, username, password, nickname, avatar, signature, role, solved_count, submit_count, solution_count, status, create_time, update_time from user where username = #{username};
+    </select>
+    <!--通过用户ID查询用户信息-->
+    <select id="getUserById" resultType="com.ccredpanda.rpjudge.entity.User">
+        select id, username, password, nickname, avatar, signature, role, solved_count, submit_count, solution_count, status, create_time, update_time from user where id = #{id}
+    </select>
+    <!--将用户提交数自增1-->
+    <update id="incSubmitCount">
+        update user set submit_count = submit_count + 1 where id = #{userId}
+    </update>
+    <!--将用户通过数自增1-->
+    <update id="incSolvedCount">
+        update user set solved_count = solved_count + 1 where id = #{userId}
+    </update>
+    <!--更新用户个人资料-->
+    <update id="updateProfile">
+        update user
+        <set>
+            <if test="nickname != null and nickname != ''">
+                nickname = #{nickname},
+            </if>
+            <if test="signature != null">
+                signature = #{signature},
+            </if>
+            <if test="avatar != null">
+                avatar = #{avatar},
+            </if>
+            update_time = NOW()
+        </set>
+        where id = #{id}
+    </update>
+    <!--用户更新密码-->
+    <update id="updatePassword">
+        update user
+        set password = #{password},
+            update_time = NOW()
+        where id = #{id}
+    </update>
+</mapper>

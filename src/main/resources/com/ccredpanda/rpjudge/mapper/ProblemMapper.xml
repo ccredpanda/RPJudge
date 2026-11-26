@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ccredpanda.rpjudge.mapper.ProblemMapper">
+    <!--对用户已解答的题进行条件分页查询-->
+    <select id="getSolvedProblemByUserId" resultType="com.ccredpanda.rpjudge.vo.SolvedProblemVo">
+        select ac.problem_id,
+               p.title,
+               p.difficulty difficulty,
+               ac.create_time acTime
+        from problem p left join user_problem_ac ac
+        on p.id = ac.problem_id
+        where
+            p.status = 1 and
+            ac.user_id = #{userId}
+            <if test="difficulty != null">
+            and p.difficulty = #{difficulty}
+            </if>
+        order by ac.create_time desc
+    </select>
+    <!--通过题目ID获得题目信息-->
+    <select id="getProblemById" resultType="com.ccredpanda.rpjudge.entity.Problem">
+        select id, title, content, difficulty, tag, time_limit, memory_limit, template_code, accepted_count, submit_count, solution_count, status, create_time, update_time from problem
+        where id = #{id}
+    </select>
+    <!--对题目列表进行条件分页查询-->
+    <select id="list" resultType="com.ccredpanda.rpjudge.vo.ProblemVo">
+        select id, title, difficulty, tag,
+               accepted_count, submit_count, status, solution_count,
+               (case
+                    when submit_count > 0 then round(accepted_count / submit_count * 100, 1)
+                    else 0.0
+                   end) as pass_rate
+        from problem
+        <where>
+            <if test="difficulty != null">
+                difficulty = #{difficulty}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                and title like concat('%', #{keyword}, '%')
+            </if>
+            <if test="tag != null and tag != ''" >
+                and tag like concat('%', #{tag}, '%')
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+        </where>
+        <choose>
+            <when test="sort == 'solutionCount'">order by solution_count desc</when>
+            <when test="sort == 'passRate'">order by pass_rate desc</when>
+            <otherwise>order by id asc</otherwise>
+        </choose>
+    </select>
+    <!--获得所有题目标题-->
+    <select id="getTags" resultType="java.lang.String">
+        select tag from problem where status = 1
+    </select>
+    <!--新增一个题目-->
+    <insert id="add">
+        insert into problem(title, content, difficulty, tag, time_limit, memory_limit, template_code, status)
+        values(#{title}, #{content}, #{difficulty}, #{tag}, #{timeLimit}, #{memoryLimit}, #{templateCode}, #{status})
+    </insert>
+    <!--通过题目ID更新题目信息-->
+    <update id="update">
+       update problem
+       <set>
+           <if test="title != null and title != ''">
+               title = #{title},
+           </if>
+           <if test="content != null and content != ''">
+               content = #{content},
+           </if>
+           <if test="difficulty != null">
+               difficulty = #{difficulty},
+           </if>
+           <if test="tags != null">
+               tag = #{tag},
+           </if>
+           <if test="timeLimit != null">
+               time_limit = #{timeLimit},
+           </if>
+           <if test="memoryLimit != null">
+               memory_limit = #{memoryLimit},
+           </if>
+           <if test="templateCode != null">
+               template_code = #{templateCode},
+           </if>
+           <if test="status != null">
+               status = #{status},
+           </if>
+           update_time = NOW()
+       </set>
+       where id = #{problemId}
+    </update>
+    <!--通过题目ID删除题目信息-->
+    <delete id="deleteByProblemId">
+        delete from problem where id = #{problemId}
+    </delete>
+    <!--题目提交数自增1-->
+    <update id="incSubmitCount">
+        update problem set submit_count = submit_count + 1 where id = #{problemId}
+    </update>
+    <!--题目提通过自增1-->
+    <update id="incAcceptedCount">
+        update problem set accepted_count = accepted_count + 1 where id = #{problemId}
+    </update>
+</mapper>

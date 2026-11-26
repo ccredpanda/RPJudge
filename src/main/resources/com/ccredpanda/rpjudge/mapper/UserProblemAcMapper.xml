@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ccredpanda.rpjudge.mapper.UserProblemAcMapper">
+   <!--新增一条通过记录-->
+    <insert id="add">
+        INSERT INTO user_problem_ac (user_id, problem_id, submission_id)
+        VALUES (#{userId}, #{problemId}, #{submissionId})
+    </insert>
+    <!--忽略唯一索引插入返回影响的行数-->
+    <insert id="insertIgnore">
+        insert ignore into user_problem_ac(user_id, problem_id, submission_id)
+        values (#{userId}, #{problemId}, #{id})
+    </insert>
+    <!--列出所有用户已通过题并分页-->
+    <select id="list" resultType="com.ccredpanda.rpjudge.entity.UserProblemAc">
+        select id, user_id, problem_id, submission_id, create_time from user_problem_ac
+                 where user_id = #{userId}
+                 order by create_time desc
+    </select>
+    <!--通过用户ID和题目ID统计用户过题数-->
+    <select id="countUserStatusById" resultType="java.lang.Integer">
+        select count(*) from user_problem_ac where user_id = #{userId} and problem_id = #{problemId}
+    </select>
+</mapper>
